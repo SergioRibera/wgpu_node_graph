@@ -16,17 +16,21 @@ mod wgpu;
 
 pub struct PreviewWindow {
     render_backend: Renderer,
-    triangle: Arc<Mutex<RotatingTriangle>>,
+    triangle: Option<Arc<Mutex<RotatingTriangle>>>,
     angle: f32,
     shape: Shape,
 }
 
 impl PreviewWindow {
-    pub fn new(ctx: &glow::Context, render_backend: Renderer) -> Self {
+    pub fn new(ctx: Option<&glow::Context>, render_backend: Renderer) -> Self {
         Self {
             render_backend,
             angle: 0.,
-            triangle: Arc::new(Mutex::new(RotatingTriangle::new(ctx))),
+            triangle: if render_backend == Renderer::Glow {
+                Some(Arc::new(Mutex::new(RotatingTriangle::new(ctx.unwrap()))))
+            } else {
+                None
+            },
             shape: Default::default(),
         }
     }
@@ -44,15 +48,16 @@ impl PreviewWindow {
             .min_size((DEFAULT_SIZE, DEFAULT_SIZE))
             .default_pos((x, y))
             .show(ctx, |ui| {
-                ui.label("Shape:");
-                ComboBox::new("select_shape", "")
-                    .selected_text(self.shape.to_string())
-                    .show_ui(ui, |ui| {
-                        ui.selectable_value(&mut self.shape, Shape::Quad, "Quad");
-                        ui.selectable_value(&mut self.shape, Shape::Cube, "Cube");
-                        ui.selectable_value(&mut self.shape, Shape::Sphere, "Sphere");
-                    });
-                ui.end_row();
+                ui.horizontal(|ui| {
+                    ui.label("Shape:");
+                    ComboBox::new("select_shape", "")
+                        .selected_text(self.shape.to_string())
+                        .show_ui(ui, |ui| {
+                            ui.selectable_value(&mut self.shape, Shape::Quad, "Quad");
+                            ui.selectable_value(&mut self.shape, Shape::Cube, "Cube");
+                            ui.selectable_value(&mut self.shape, Shape::Sphere, "Sphere");
+                        });
+                });
                 egui::Frame::canvas(ui.style()).show(ui, |ui| self.render_preview(ui));
             });
     }
@@ -67,9 +72,10 @@ impl PreviewWindow {
         let angle = self.angle;
 
         match self.render_backend {
-            Renderer::Glow => ui
-                .painter()
-                .add(gl_callback(rect, angle, self.triangle.clone())),
+            Renderer::Glow => {
+                ui.painter()
+                    .add(gl_callback(rect, angle, self.triangle.clone().unwrap()))
+            }
             Renderer::Wgpu => ui.painter().add(wgpu_callback(rect, angle)),
         };
     }

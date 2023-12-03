@@ -1,5 +1,5 @@
-use eframe::{egui, glow};
 use eframe::egui::Modifiers;
+use eframe::{egui, CreationContext, Renderer};
 
 use crate::nodes_context_menu::NodeContextMenu;
 use crate::preview::PreviewWindow;
@@ -42,10 +42,16 @@ impl eframe::App for Application<'_> {
 }
 
 impl Application<'_> {
-    pub fn new(gl: &glow::Context) -> Self {
+    pub fn new(cc: &CreationContext, renderer: Renderer) -> Self {
+        let gl = if renderer == Renderer::Glow {
+            cc.gl.as_ref()
+        } else {
+            None
+        };
+
         Self {
             show_settings: true,
-            preview: PreviewWindow::new(gl, eframe::Renderer::Glow),
+            preview: PreviewWindow::new(gl.map(|r| r.as_ref()), renderer),
             node_ctx_menu: Default::default(),
         }
     }

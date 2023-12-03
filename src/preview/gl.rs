@@ -5,8 +5,6 @@ use eframe::epaint::mutex::Mutex;
 use eframe::epaint::{PaintCallback, Rect};
 use eframe::glow;
 
-use super::shape::Shape;
-
 pub fn gl_callback(rect: Rect, angle: f32, rot: Arc<Mutex<RotatingTriangle>>) -> PaintCallback {
     PaintCallback {
         rect,

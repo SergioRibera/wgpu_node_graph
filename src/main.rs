@@ -11,7 +11,7 @@ async fn main() -> Result<(), eframe::Error> {
 
     let options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default().with_inner_size([1080.0, 720.0]),
-        renderer: Renderer::Glow,
+        renderer: Renderer::Wgpu,
         ..Default::default()
     };
 
@@ -22,9 +22,7 @@ async fn main() -> Result<(), eframe::Error> {
             // This gives us image support:
             egui_extras::install_image_loaders(&cc.egui_ctx);
 
-            let gl = cc.gl.as_ref().unwrap();
-
-            Box::new(Application::new(gl))
+            Box::new(Application::new(cc, Renderer::Wgpu))
         }),
     )
 }
