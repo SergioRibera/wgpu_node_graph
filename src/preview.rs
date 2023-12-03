@@ -76,7 +76,7 @@ impl PreviewWindow {
                 ui.painter()
                     .add(gl_callback(rect, angle, self.triangle.clone().unwrap()))
             }
-            Renderer::Wgpu => ui.painter().add(wgpu_callback(rect, angle)),
+            Renderer::Wgpu => ui.painter().add(wgpu_callback(rect, angle, &self.shape)),
         };
     }
 }

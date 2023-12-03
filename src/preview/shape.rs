@@ -1,4 +1,4 @@
-#[derive(Default, PartialEq)]
+#[derive(Clone, Default, PartialEq)]
 pub enum Shape {
     Quad,
     Cube,

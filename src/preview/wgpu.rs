@@ -3,18 +3,23 @@ use eframe::epaint::{PaintCallback, Rect};
 
 use super::shape::Shape;
 
-#[derive(Default)]
-pub struct WgpuRenderPreview {
-    shape: Shape,
-}
-
-pub fn wgpu_callback(rect: Rect, angle: f32) -> PaintCallback {
+pub fn wgpu_callback(rect: Rect, angle: f32, shape: &Shape) -> PaintCallback {
     PaintCallback {
         rect,
         callback: std::sync::Arc::new(Callback::new_paint_callback(
             rect,
-            WgpuRenderPreview::default(),
+            WgpuRenderPreview::new(shape.clone()),
         )),
+    }
+}
+
+pub struct WgpuRenderPreview {
+    shape: Shape,
+}
+
+impl WgpuRenderPreview {
+    pub fn new(shape: Shape) -> Self {
+        Self { shape }
     }
 }
 
