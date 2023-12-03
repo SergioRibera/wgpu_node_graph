@@ -1,8 +1,9 @@
-use eframe::egui::{DragValue, self};
+use eframe::egui::{self, DragValue};
 use eframe::epaint::ecolor::Color32;
 use egui_node_graph::{
     DataTypeTrait, NodeDataTrait, NodeId, NodeResponse, UserResponseTrait, WidgetValueTrait,
 };
+use naga::TypeInner;
 use serde::{Deserialize, Serialize};
 
 use super::template::ShaderNodeTemplate;
@@ -15,19 +16,29 @@ pub struct ShaderNodeData {
 
 #[derive(Serialize, Deserialize, PartialEq, Eq)]
 pub enum ShaderDataType {
-    Color,
-    Vec3,
-    AddColor,
+    Scalar,
+    Vector,
+    Matrix,
+    Atomic,
+    Pointer,
+    ValuePointer,
+    Array,
+    Struct,
+    Image,
+    Sampler,
+    AccelerationStructure,
+    RayQuery,
+    BindingArray,
 }
 
-#[derive(Clone, Debug, Default, Serialize, Deserialize)]
-pub enum ShaderValueType {
-    #[default]
-    None,
-    Color(Color32),
-    Vec3(f32, f32, f32),
-    AddColor(Color32, Color32),
-}
+// #[derive(Clone, Debug, Default, Serialize, Deserialize)]
+// pub enum ShaderValueType {
+//     #[default]
+//     None,
+//     Color(Color32),
+//     Vec3(f32, f32, f32),
+//     AddColor(Color32, Color32),
+// }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ShaderNodeResponse {
@@ -39,20 +50,30 @@ impl UserResponseTrait for ShaderNodeResponse {}
 impl DataTypeTrait<ShaderNodeGraphState> for ShaderDataType {
     fn data_type_color(&self, _user_state: &mut ShaderNodeGraphState) -> Color32 {
         match self {
-            ShaderDataType::Color | ShaderDataType::AddColor => Color32::LIGHT_RED,
-            ShaderDataType::Vec3 => Color32::LIGHT_GREEN,
+            ShaderDataType::Array
+            | ShaderDataType::Scalar
+            | ShaderDataType::Vector
+            | ShaderDataType::Matrix
+            | ShaderDataType::BindingArray => Color32::LIGHT_GRAY,
+            ShaderDataType::Image | ShaderDataType::Sampler => Color32::LIGHT_RED,
+            _ => Color32::LIGHT_GREEN,
         }
     }
 
     fn name(&self) -> std::borrow::Cow<str> {
         std::borrow::Cow::Borrowed(match self {
-            ShaderDataType::Color | ShaderDataType::AddColor => "Color",
-            ShaderDataType::Vec3 => "Vec3",
+            ShaderDataType::Array
+            | ShaderDataType::Scalar
+            | ShaderDataType::Vector
+            | ShaderDataType::Matrix
+            | ShaderDataType::BindingArray => "Math",
+            ShaderDataType::Image | ShaderDataType::Sampler => "Image",
+            _ => "",
         })
     }
 }
 
-impl WidgetValueTrait for ShaderValueType {
+impl WidgetValueTrait for TypeInner {
     type Response = ShaderNodeResponse;
     type UserState = ShaderNodeGraphState;
     type NodeData = ShaderNodeData;
@@ -90,13 +111,13 @@ impl NodeDataTrait for ShaderNodeData {
     type Response = ShaderNodeResponse;
     type UserState = ShaderNodeGraphState;
     type DataType = ShaderDataType;
-    type ValueType = ShaderValueType;
+    type ValueType = TypeInner;
 
     fn bottom_ui(
         &self,
         ui: &mut egui::Ui,
         node_id: egui_node_graph::NodeId,
-        graph: &egui_node_graph::Graph<Self, Self::DataType, Self::ValueType>,
+        _graph: &egui_node_graph::Graph<Self, Self::DataType, Self::ValueType>,
         user_state: &mut Self::UserState,
     ) -> Vec<egui_node_graph::NodeResponse<Self::Response, Self>>
     where
