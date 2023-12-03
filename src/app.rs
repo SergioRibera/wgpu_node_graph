@@ -1,52 +1,62 @@
 use eframe::egui;
 use eframe::egui::Modifiers;
 
+use crate::nodes_context_menu::NodeContextMenu;
 use crate::preview;
-use crate::search::Search;
 
-#[derive(Default)]
-pub struct Application {
-    search: Search,
+pub struct Application<'a> {
+    show_settings: bool,
+    node_ctx_menu: NodeContextMenu<'a>,
 }
 
-impl eframe::App for Application {
+impl Default for Application<'_> {
+    fn default() -> Self {
+        Self {
+            show_settings: true,
+            node_ctx_menu: Default::default(),
+        }
+    }
+}
+
+impl eframe::App for Application<'_> {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         egui::TopBottomPanel::top("menu_bar").show(ctx, |ui| {
             egui::menu::bar(ui, |ui| {
                 self.file_menu_button(ui);
             });
         });
-        egui::SidePanel::left("wgpu_node_graph_settings")
-            .resizable(true)
-            .default_width(250.0)
-            .max_width(500.)
-            .show(ctx, |ui| {
-                ui.vertical_centered(|ui| {
-                    ui.heading("Settings");
-                });
 
-                ui.separator();
-            });
-        egui::CentralPanel::default().show(ctx, |ui| {
-            preview::show_window(ctx, ui);
-            self.search.show_window(ctx, ui);
-        }).response.context_menu(|ui| {
-            ui.menu_button("Add Node", |ui| {
-                let _ = ui.button("Preview");
-                ui.menu_button("Math", |ui| {
-                    let _ = ui.button("Add");
-                    let _ = ui.button("Sub");
-                    let _ = ui.button("Mul");
+        if self.show_settings {
+            egui::SidePanel::left("wgpu_node_graph_settings")
+                .resizable(true)
+                .default_width(250.)
+                .max_width(500.)
+                .show(ctx, |ui| {
+                    ui.vertical_centered(|ui| {
+                        ui.heading("Settings");
+                    });
+
+                    ui.separator();
                 });
-            });
-        });
+        }
+
+        egui::CentralPanel::default()
+            .show(ctx, |ui| {
+                preview::show_window(ctx, ui);
+            })
+            .response
+            .context_menu(|ui| self.node_ctx_menu.render(ui));
     }
 }
 
-impl Application {
+impl Application<'_> {
     fn file_menu_button(&mut self, ui: &mut egui::Ui) {
         let save_shortcut = egui::KeyboardShortcut::new(Modifiers::CTRL, egui::Key::S);
         let open_shortcut = egui::KeyboardShortcut::new(Modifiers::CTRL, egui::Key::O);
+
+        if ui.add(egui::Button::new("Toggle Settings")).clicked() {
+            self.show_settings = !self.show_settings;
+        }
 
         ui.menu_button("File", |ui| {
             ui.set_min_width(220.0);
