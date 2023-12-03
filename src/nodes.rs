@@ -26,6 +26,10 @@ impl NodeTemplateIter for ShaderNodeTemplates {
     type Item = ShaderNodeTemplate;
 
     fn all_kinds(&self) -> Vec<Self::Item> {
-        vec![]
+        vec![
+            ShaderNodeTemplate::MakeAdd,
+            ShaderNodeTemplate::MakeVec3,
+            ShaderNodeTemplate::MakeColor,
+        ]
     }
 }
