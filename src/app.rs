@@ -1,21 +1,13 @@
-use eframe::egui;
+use eframe::{egui, glow};
 use eframe::egui::Modifiers;
 
 use crate::nodes_context_menu::NodeContextMenu;
-use crate::preview;
+use crate::preview::PreviewWindow;
 
 pub struct Application<'a> {
     show_settings: bool,
+    preview: PreviewWindow,
     node_ctx_menu: NodeContextMenu<'a>,
-}
-
-impl Default for Application<'_> {
-    fn default() -> Self {
-        Self {
-            show_settings: true,
-            node_ctx_menu: Default::default(),
-        }
-    }
 }
 
 impl eframe::App for Application<'_> {
@@ -42,7 +34,7 @@ impl eframe::App for Application<'_> {
 
         egui::CentralPanel::default()
             .show(ctx, |ui| {
-                preview::show_window(ctx, ui);
+                self.preview.show(ctx, ui);
             })
             .response
             .context_menu(|ui| self.node_ctx_menu.render(ui));
@@ -50,6 +42,13 @@ impl eframe::App for Application<'_> {
 }
 
 impl Application<'_> {
+    pub fn new(gl: &glow::Context) -> Self {
+        Self {
+            show_settings: true,
+            preview: PreviewWindow::new(gl, eframe::Renderer::Glow),
+            node_ctx_menu: Default::default(),
+        }
+    }
     fn file_menu_button(&mut self, ui: &mut egui::Ui) {
         let save_shortcut = egui::KeyboardShortcut::new(Modifiers::CTRL, egui::Key::S);
         let open_shortcut = egui::KeyboardShortcut::new(Modifiers::CTRL, egui::Key::O);
