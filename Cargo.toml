@@ -22,9 +22,13 @@ opt-level = 3
 log = "0.4.20"
 env_logger = "0.10.0"
 egui_extras = "0.24.0"
-eframe = { version = "0.24.0", features = ["wgpu"] }
+serde = { version = "1.0.193", features = ["derive"] }
+eframe = { version = "0.24.0", features = ["wgpu", "persistence"] }
 tokio = { version = "1.34.0", default-features = false, features = [
     "rt",
     "rt-multi-thread",
     "macros",
 ] }
+egui_node_graph = { version = "0.4.0", features = [
+    "persistence",
+], git = "https://github.com/SergioRibera/egui_node_graph", branch = "main" }

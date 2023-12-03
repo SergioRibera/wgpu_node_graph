@@ -1,16 +1,23 @@
 use eframe::egui::Modifiers;
 use eframe::{egui, CreationContext, Renderer};
+use egui_node_graph::GraphEditorState;
 
-use crate::nodes_context_menu::NodeContextMenu;
+use crate::nodes::{ShaderEditorState, ShaderNodeGraphState, ShaderNodeTemplates};
 use crate::preview::PreviewWindow;
 
-pub struct Application<'a> {
+const PERSISTENCE_KEY: &'static str = "SergioRibera_ShaderNodeGraph";
+
+pub struct Application {
+    node_editor_state: ShaderEditorState,
     show_settings: bool,
     preview: PreviewWindow,
-    node_ctx_menu: NodeContextMenu<'a>,
+    nodes_state: ShaderNodeGraphState,
 }
 
-impl eframe::App for Application<'_> {
+impl eframe::App for Application {
+    fn save(&mut self, storage: &mut dyn eframe::Storage) {
+        eframe::set_value(storage, PERSISTENCE_KEY, &self.nodes_state);
+    }
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         egui::TopBottomPanel::top("menu_bar").show(ctx, |ui| {
             egui::menu::bar(ui, |ui| {
@@ -34,14 +41,18 @@ impl eframe::App for Application<'_> {
 
         egui::CentralPanel::default()
             .show(ctx, |ui| {
+                let _ = self.node_editor_state.draw_graph_editor(
+                    ui,
+                    ShaderNodeTemplates,
+                    &mut self.nodes_state,
+                    Vec::new()
+                );
                 self.preview.show(ctx, ui);
-            })
-            .response
-            .context_menu(|ui| self.node_ctx_menu.render(ui));
+            });
     }
 }
 
-impl Application<'_> {
+impl Application {
     pub fn new(cc: &CreationContext, renderer: Renderer) -> Self {
         let gl = if renderer == Renderer::Glow {
             cc.gl.as_ref()
@@ -52,7 +63,8 @@ impl Application<'_> {
         Self {
             show_settings: true,
             preview: PreviewWindow::new(gl.map(|r| r.as_ref()), renderer),
-            node_ctx_menu: Default::default(),
+            nodes_state: Default::default(),
+            node_editor_state: GraphEditorState::default(),
         }
     }
     fn file_menu_button(&mut self, ui: &mut egui::Ui) {

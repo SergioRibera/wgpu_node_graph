@@ -2,6 +2,7 @@ use app::Application;
 use eframe::{egui, Renderer};
 
 mod app;
+mod nodes;
 mod nodes_context_menu;
 mod preview;
 
