@@ -2,9 +2,12 @@ use eframe::egui;
 use eframe::egui::Modifiers;
 
 use crate::preview;
+use crate::search::Search;
 
 #[derive(Default)]
-pub struct Application;
+pub struct Application {
+    search: Search,
+}
 
 impl eframe::App for Application {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
@@ -26,6 +29,16 @@ impl eframe::App for Application {
             });
         egui::CentralPanel::default().show(ctx, |ui| {
             preview::show_window(ctx, ui);
+            self.search.show_window(ctx, ui);
+        }).response.context_menu(|ui| {
+            ui.menu_button("Add Node", |ui| {
+                let _ = ui.button("Preview");
+                ui.menu_button("Math", |ui| {
+                    let _ = ui.button("Add");
+                    let _ = ui.button("Sub");
+                    let _ = ui.button("Mul");
+                });
+            });
         });
     }
 }

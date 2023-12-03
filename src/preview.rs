@@ -7,7 +7,6 @@ pub fn show_window(ctx: &egui::Context, ui: &mut Ui) {
     let y = ui.available_height() - DEFAULT_SIZE - 50.;
 
     egui::Window::new("Preview")
-        .auto_sized()
         .movable(true)
         .resizable(true)
         .title_bar(true)
